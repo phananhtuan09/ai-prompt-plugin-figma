@@ -1,0 +1,24 @@
+{
+  "name": "plugin-ai-prompt-figma",
+  "version": "1.2.0",
+  "description": "Figma plugin to generate AI prompts using Google Gemini",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "npx http-server . -p 8080 -c-1 --cors"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "ai",
+    "gemini"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.85.0",
+    "typescript": "^5.0.0"
+  }
+}
+

@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AI Prompt Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #333;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .settings-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .settings-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .frame-info {
+      background: #f8f8f8;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .frame-name {
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .frame-dimensions {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .no-frame {
+      color: #e63946;
+      font-size: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    label {
+      cursor: pointer;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .responsive-input-wrapper {
+      margin-top: 8px;
+      margin-left: 24px;
+      display: none;
+    }
+
+    .responsive-input-wrapper.show {
+      display: block;
+    }
+
+    .responsive-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .responsive-input:focus {
+      outline: none;
+      border-color: #18a0fb;
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 10px 16px;
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      background: #0d8ce8;
+    }
+
+    .generate-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status-message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .status-message.show {
+      display: block;
+    }
+
+    .status-message.generating {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-message.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .result-container {
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .result-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .copy-btn {
+      padding: 6px 12px;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .copy-btn.copied {
+      background: #4caf50;
+      color: white;
+      border-color: #4caf50;
+    }
+
+    .result-content {
+      background: #f8f8f8;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Modal Settings */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      color: #333;
+    }
+
+    .form-field {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #18a0fb;
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: #18a0fb;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: #18a0fb;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0d8ce8;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    /* Scrollbar styling */
+    .result-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .result-content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    .result-content::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    .result-content::-webkit-scrollbar-thumb:hover {
+      background: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">AI Prompt Generator</div>
+      <button class="settings-btn" id="settingsBtn" title="Cài đặt">⚙️</button>
+    </div>
+
+    <div class="frame-info" id="frameInfo">
+      <div class="no-frame">Vui lòng chọn một Frame trên canvas</div>
+    </div>
+
+    <div class="form-group">
+      <div class="checkbox-group">
+        <input type="checkbox" id="includeResponsive">
+        <label for="includeResponsive">Bao gồm gợi ý Responsive</label>
+      </div>
+      <div class="responsive-input-wrapper" id="responsiveInputWrapper">
+        <input 
+          type="text" 
+          class="responsive-input" 
+          id="baseWidth" 
+          placeholder="Ví dụ: 1440px"
+        >
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" disabled>
+      Tạo Prompt
+    </button>
+
+    <div class="status-message" id="statusMessage"></div>
+
+    <div class="result-container" id="resultContainer">
+      <div class="result-header">
+        <div class="result-title">Kết quả</div>
+        <button class="copy-btn" id="copyBtn">Sao chép</button>
+      </div>
+      <div class="result-content" id="resultContent"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Cài đặt</div>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="apiKey">Google Gemini API Key</label>
+        <input 
+          type="password" 
+          class="form-input" 
+          id="apiKey" 
+          placeholder="Nhập API Key của bạn"
+        >
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="modelSelect">Model AI</label>
+        <select class="form-select" id="modelSelect">
+          <!-- Options sẽ được thêm bằng JavaScript -->
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Hủy</button>
+        <button class="btn btn-primary" id="saveConfigBtn">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentConfig = { apiKey: '', model: '' };
+    let models = [];
+    let currentPrompt = '';
+
+    // Elements
+    const settingsBtn = document.getElementById('settingsBtn');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalClose = document.getElementById('modalClose');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveConfigBtn = document.getElementById('saveConfigBtn');
+    const apiKeyInput = document.getElementById('apiKey');
+    const modelSelect = document.getElementById('modelSelect');
+    const generateBtn = document.getElementById('generateBtn');
+    const includeResponsiveCheckbox = document.getElementById('includeResponsive');
+    const responsiveInputWrapper = document.getElementById('responsiveInputWrapper');
+    const baseWidthInput = document.getElementById('baseWidth');
+    const frameInfo = document.getElementById('frameInfo');
+    const statusMessage = document.getElementById('statusMessage');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultContent = document.getElementById('resultContent');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // Mở modal settings
+    settingsBtn.addEventListener('click', () => {
+      modalOverlay.classList.add('show');
+      apiKeyInput.value = currentConfig.apiKey;
+      modelSelect.value = currentConfig.model;
+    });
+
+    // Đóng modal
+    const closeModal = () => {
+      modalOverlay.classList.remove('show');
+    };
+
+    modalClose.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // Lưu cấu hình
+    saveConfigBtn.addEventListener('click', () => {
+      currentConfig.apiKey = apiKeyInput.value.trim();
+      currentConfig.model = modelSelect.value;
+      
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-config',
+          config: currentConfig
+        }
+      }, '*');
+
+      closeModal();
+    });
+
+    // Toggle responsive input
+    includeResponsiveCheckbox.addEventListener('change', () => {
+      if (includeResponsiveCheckbox.checked) {
+        responsiveInputWrapper.classList.add('show');
+        baseWidthInput.focus();
+      } else {
+        responsiveInputWrapper.classList.remove('show');
+      }
+    });
+
+    // Generate prompt
+    generateBtn.addEventListener('click', () => {
+      const includeResponsive = includeResponsiveCheckbox.checked;
+      const baseWidth = includeResponsive ? baseWidthInput.value.trim() : undefined;
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate-prompt',
+          includeResponsive: includeResponsive,
+          baseWidth: baseWidth
+        }
+      }, '*');
+
+      generateBtn.disabled = true;
+      resultContainer.classList.remove('show');
+      statusMessage.classList.remove('show');
+    });
+
+    // Copy prompt
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(currentPrompt);
+        copyBtn.textContent = 'Đã sao chép!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Sao chép';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        // Fallback cho trình duyệt không hỗ trợ Clipboard API
+        const textarea = document.createElement('textarea');
+        textarea.value = currentPrompt;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        copyBtn.textContent = 'Đã sao chép!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Sao chép';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      }
+    });
+
+    // Hiển thị status message
+    function showStatus(message, type) {
+      statusMessage.textContent = message;
+      statusMessage.className = `status-message show ${type}`;
+    }
+
+    // Hiển thị kết quả
+    function showResult(prompt) {
+      currentPrompt = prompt;
+      resultContent.textContent = prompt;
+      resultContainer.classList.add('show');
+      statusMessage.classList.remove('show');
+      generateBtn.disabled = false;
+    }
+
+    // Cập nhật frame info
+    function updateFrameInfo(frameName, isValid, width, height) {
+      if (isValid && frameName) {
+        frameInfo.innerHTML = `
+          <div class="frame-name">${frameName}</div>
+          <div class="frame-dimensions">${width}px × ${height}px</div>
+        `;
+        generateBtn.disabled = false;
+      } else {
+        frameInfo.innerHTML = '<div class="no-frame">Vui lòng chọn một Frame trên canvas</div>';
+        generateBtn.disabled = true;
+      }
+    }
+
+    // Xử lý messages từ plugin
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+
+      if (msg.type === 'selection-updated') {
+        updateFrameInfo(msg.frameName, msg.isValid, msg.width, msg.height);
+      }
+
+      if (msg.type === 'config-loaded') {
+        currentConfig = msg.config;
+        models = msg.models || [];
+        
+        // Populate model select
+        modelSelect.innerHTML = '';
+        models.forEach(model => {
+          const option = document.createElement('option');
+          option.value = model.value;
+          option.textContent = model.label;
+          modelSelect.appendChild(option);
+        });
+        modelSelect.value = currentConfig.model || models[0]?.value || '';
+      }
+
+      if (msg.type === 'config-saved') {
+        // Config đã được lưu
+      }
+
+      if (msg.type === 'generating') {
+        showStatus(msg.message, 'generating');
+        generateBtn.disabled = true;
+      }
+
+      if (msg.type === 'prompt-generated') {
+        showResult(msg.prompt);
+      }
+
+      if (msg.type === 'error') {
+        showStatus(msg.message, 'error');
+        generateBtn.disabled = false;
+      }
+    };
+
+    // Yêu cầu config khi load
+    parent.postMessage({
+      pluginMessage: {
+        type: 'get-config'
+      }
+    }, '*');
+
+    // Yêu cầu selection khi load
+    parent.postMessage({
+      pluginMessage: {
+        type: 'get-selection'
+      }
+    }, '*');
+  </script>
+</body>
+</html>
+
